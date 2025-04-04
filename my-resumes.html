@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Resumes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="mb-4">My Resumes</h2>
+        <div id="resumesList" class="row">
+            <!-- Resumes will be loaded here -->
+            <div class="text-center">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+        <div class="mt-4">
+            <button class="btn btn-primary" onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", loadResumes);
+        
+        async function loadResumes() {
+            try {
+                const token = localStorage.getItem("token");
+                if (!token) {
+                    window.location.href = "login.html";
+                    return;
+                }
+                
+                const response = await fetch(`${API_URL}/user-resumes`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                
+                if (!response.ok) {
+                    throw new Error("Failed to load resumes");
+                }
+                
+                const resumes = await response.json();
+                const resumesList = document.getElementById("resumesList");
+                
+                if (resumes.length === 0) {
+                    resumesList.innerHTML = `
+                        <div class="col-12 text-center">
+                            <p>No resumes found. <a href="resumeBuilder.html">Create your first resume</a></p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                resumesList.innerHTML = resumes.map(resume => `
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">${resume.personalDetails.name || 'Unnamed Resume'}</h5>
+                                <p class="card-text"><small class="text-muted">Created: ${new Date(resume.createdAt).toLocaleDateString()}</small></p>
+                                <p class="card-text">Education: ${resume.education.college || 'Not specified'}</p>
+                                <div class="d-flex justify-content-between mt-3">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewResume('${resume._id}')">View</button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteResume('${resume._id}')">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error("Error loading resumes:", error);
+                document.getElementById("resumesList").innerHTML = `
+                    <div class="col-12 text-center">
+                        <p class="text-danger">Error loading resumes. Please try again.</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
