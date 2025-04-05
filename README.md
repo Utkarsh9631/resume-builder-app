@@ -57,17 +57,19 @@ A full-stack web application that allows users to create, view, and manage ATS-f
    cd ats-resume-builder
 
 ## Install dependencies
+```bash
 npm install
 
 ## Create .env file
 
 Create a .env file in the root directory with the following variables:
+```bash
 MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
 PORT=5000
 
 ## Start the server
-
+```bash
 npm start
 
 ## Open the application
