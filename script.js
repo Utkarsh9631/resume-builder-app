@@ -133,6 +133,20 @@ async function viewResumes() {
     window.location.href = "my-resumes.html";
 }
 
+// Add this function to your existing script.js file
+
+function trackApplications() {
+    // Check if user is logged in first
+    const token = localStorage.getItem("token");
+    if (!token) {
+        alert("Please log in to access the job tracker");
+        window.location.href = "login.html";
+        return;
+    }
+    
+    window.location.href = "application-tracker.html";
+}
+
 // Call fetchUserDetails on Dashboard Load
 document.addEventListener("DOMContentLoaded", function () {
     if (document.body.contains(document.getElementById("username"))) {

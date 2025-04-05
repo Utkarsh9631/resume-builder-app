@@ -96,6 +96,43 @@ const resumeSchema = new mongoose.Schema({
 
 const Resume = mongoose.model("Resume", resumeSchema);
 
+// Define Job Application Schema
+const applicationSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  resumeId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Resume',
+    required: true
+  },
+  company: {
+    type: String,
+    required: true
+  },
+  position: {
+    type: String,
+    required: true
+  },
+  applicationDate: {
+    type: Date,
+    default: Date.now
+  },
+  status: {
+    type: String,
+    enum: ['Applied', 'Interview', 'Rejected', 'Offer', 'Accepted'],
+    default: 'Applied'
+  },
+  notes: String,
+  contactPerson: String,
+  applicationUrl: String,
+  followUpDate: Date
+}, { timestamps: true });
+
+const Application = mongoose.model("Application", applicationSchema);
+
 // 🔹 Signup Route
 app.post("/signup", async (req, res) => {
   const { username, email, password } = req.body;
@@ -248,6 +285,113 @@ app.delete('/resume/:id', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error("Error deleting resume:", err);
     res.status(500).json({ error: "Error deleting resume" });
+  }
+});
+
+// Add after the resume endpoints
+
+// 🔹 Job Application Routes 🔹
+
+// Create new application
+app.post('/applications', authenticateToken, async (req, res) => {
+  try {
+    const applicationData = {
+      ...req.body,
+      userId: req.user._id
+    };
+    
+    const newApplication = new Application(applicationData);
+    await newApplication.save();
+    res.status(201).json({ message: "Application saved successfully!", application: newApplication });
+  } catch (err) {
+    console.error("Error saving application:", err);
+    res.status(500).json({ error: "Error saving application" });
+  }
+});
+
+// Get all applications for current user
+app.get('/applications', authenticateToken, async (req, res) => {
+  try {
+    const applications = await Application.find({ userId: req.user._id })
+      .populate('resumeId', 'personalDetails.name')
+      .sort({ applicationDate: -1 });
+    res.json(applications);
+  } catch (err) {
+    console.error("Error fetching applications:", err);
+    res.status(500).json({ error: "Error fetching applications" });
+  }
+});
+
+// Get applications for specific resume
+app.get('/applications/resume/:resumeId', authenticateToken, async (req, res) => {
+  try {
+    const applications = await Application.find({ 
+      userId: req.user._id,
+      resumeId: req.params.resumeId
+    }).sort({ applicationDate: -1 });
+    res.json(applications);
+  } catch (err) {
+    console.error("Error fetching resume applications:", err);
+    res.status(500).json({ error: "Error fetching resume applications" });
+  }
+});
+
+// Update application status
+app.put('/applications/:id', authenticateToken, async (req, res) => {
+  try {
+    const application = await Application.findOne({
+      _id: req.params.id,
+      userId: req.user._id
+    });
+
+    if (!application) {
+      return res.status(404).json({ error: "Application not found" });
+    }
+
+    Object.assign(application, req.body);
+    await application.save();
+    res.json({ message: "Application updated successfully" });
+  } catch (err) {
+    console.error("Error updating application:", err);
+    res.status(500).json({ error: "Error updating application" });
+  }
+});
+
+// Delete application
+app.delete('/applications/:id', authenticateToken, async (req, res) => {
+  try {
+    const result = await Application.deleteOne({
+      _id: req.params.id,
+      userId: req.user._id
+    });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: "Application not found" });
+    }
+
+    res.json({ message: "Application deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting application:", err);
+    res.status(500).json({ error: "Error deleting application" });
+  }
+});
+
+// Get a single application by ID
+app.get('/applications/:id', authenticateToken, async (req, res) => {
+  try {
+    const application = await Application.findOne({
+      _id: req.params.id,
+      userId: req.user._id // Ensure user owns this application
+    });
+
+    if (!application) {
+      return res.status(404).json({ error: "Application not found" });
+    }
+
+    res.json(application);
+  } catch (err) {
+    console.error("Error fetching application:", err);
+    res.status(500).json({ error: "Error fetching application" });
   }
 });
 
