@@ -59,7 +59,7 @@ A full-stack web application that allows users to create, view, and manage ATS-f
 ## Install dependencies
 ```bash
 npm install
-
+```
 ## Create .env file
 
 Create a .env file in the root directory with the following variables:
@@ -67,11 +67,11 @@ Create a .env file in the root directory with the following variables:
 MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
 PORT=5000
-
+```
 ## Start the server
 ```bash
 npm start
-
+```
 ## Open the application
 
 Open `dashboard.html` in your web browser or use a local server to serve the HTML files.
